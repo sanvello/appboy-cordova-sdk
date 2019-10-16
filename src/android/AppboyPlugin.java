@@ -59,6 +59,7 @@ public class AppboyPlugin extends CordovaPlugin {
   private static final String GET_CARD_COUNT_FOR_CATEGORIES_METHOD = "getCardCountForCategories";
   private static final String GET_UNREAD_CARD_COUNT_FOR_CATEGORIES_METHOD = "getUnreadCardCountForCategories";
 
+  private String apiKey;
   private boolean mPluginInitializationFinished = false;
   private Context mApplicationContext;
   private Map<String, IEventSubscriber<FeedUpdatedEvent>> mFeedSubscriberMap = new ConcurrentHashMap<String, IEventSubscriber<FeedUpdatedEvent>>();
@@ -67,14 +68,24 @@ public class AppboyPlugin extends CordovaPlugin {
   protected void pluginInitialize() {
     mApplicationContext = this.cordova.getActivity().getApplicationContext();
 
-    // Configure Appboy using the preferences from the config.xml file passed to our plugin
-    configureAppboyFromCordovaPreferences(this.preferences);
-
     // Since we've likely passed the first Application.onCreate() (due to the plugin lifecycle), lets call the
     // in-app message manager and session handling now
     AppboyInAppMessageManager.getInstance().registerInAppMessageManager(this.cordova.getActivity());
     mPluginInitializationFinished = true;
   }
+
+  public void initialize(String apiKey) {
+    if (apiKey == null) {
+      this.apiKey = apiKey;
+    }
+    else {
+      this.apiKey = cordovaPreferences.getString(APPBOY_API_KEY_PREFERENCE, null);
+    }
+
+    // Configure Appboy using the preferences from the config.xml file passed to our plugin
+    configureAppboyFromCordovaPreferences(this.preferences);
+  }
+
 
   @Override
   public boolean execute(final String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
@@ -83,6 +94,9 @@ public class AppboyPlugin extends CordovaPlugin {
 
     // Appboy methods
     switch (action) {
+      case "initialize":
+        initialize(args.getString(0));
+        return true;
       case "registerAppboyPushMessages":
         Appboy.getInstance(mApplicationContext).registerAppboyPushMessages(args.getString(0));
         return true;
@@ -317,7 +331,7 @@ public class AppboyPlugin extends CordovaPlugin {
     configBuilder.setSdkFlavor(SdkFlavor.CORDOVA);
 
     if (cordovaPreferences.contains(APPBOY_API_KEY_PREFERENCE)) {
-      configBuilder.setApiKey(cordovaPreferences.getString(APPBOY_API_KEY_PREFERENCE, null));
+      configBuilder.setApiKey(this.apiKey);
     }
     if (cordovaPreferences.contains(SMALL_NOTIFICATION_ICON_PREFERENCE)) {
       configBuilder.setSmallNotificationIcon(cordovaPreferences.getString(SMALL_NOTIFICATION_ICON_PREFERENCE, null));

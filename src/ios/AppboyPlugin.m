@@ -27,13 +27,16 @@
   self.enableLocationCollection = settings[@"com.appboy.enable_location_collection"];
   self.enableGeofences = settings[@"com.appboy.geofences_enabled"];
 
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didFinishLaunchingListener:) name:UIApplicationDidFinishLaunchingNotification object:nil];
   if (![self.disableAutomaticPushHandling isEqualToString:@"YES"]) {
     [AppDelegate swizzleHostAppDelegate];
   }
 }
 
-- (void)didFinishLaunchingListener:(NSNotification *)notification {
+- (void) initialize:(CDVInvokedUrlCommand *)command {
+  NSString *updatedAPIKey = [command argumentAtIndex:0 withDefault:nil];
+  if (updatedAPIKey != nil)
+    self.APIKey = updatedAPIKey;
+
   NSMutableDictionary *appboyLaunchOptions = [@{ABKSDKFlavorKey : @(CORDOVA)} mutableCopy];
 
   // Set location collection and geofences from preferences

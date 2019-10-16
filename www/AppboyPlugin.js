@@ -1,6 +1,15 @@
 var AppboyPlugin = function () {
 }
 
+// Sanvello methods.
+/**
+ * We provide our own initialization method to allow us to select different API Keys based on the environment
+ * in which we are operating. We don't want all of our test data to end up in our production environment.
+ */
+AppboyPlugin.prototype.initialize = function (apiKey) {
+	cordova.exec(null, null, "AppboyPlugin", "initialize", [apiKey]);
+}
+
 // Appboy methods
 /**
  * When a user first uses Appboy on a device they are considered "anonymous". Use this method to identify a user
