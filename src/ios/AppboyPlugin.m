@@ -13,6 +13,8 @@
   @property NSString *enableIDFACollection;
   @property NSString *enableLocationCollection;
   @property NSString *enableGeofences;
+  @property UIApplication *application;
+  @property NSDictionary *launchOptions;
 @end
 
 @implementation AppboyPlugin
@@ -27,9 +29,16 @@
   self.enableLocationCollection = settings[@"com.appboy.enable_location_collection"];
   self.enableGeofences = settings[@"com.appboy.geofences_enabled"];
 
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didFinishLaunchingListener:) name:UIApplicationDidFinishLaunchingNotification object:nil];
   if (![self.disableAutomaticPushHandling isEqualToString:@"YES"]) {
     [AppDelegate swizzleHostAppDelegate];
   }
+}
+
+- (void)didFinishLaunchingListener:(NSNotification *)notification {
+
+    self.application = notification.object;
+    self.launchOptions = notification.userInfo;
 }
 
 - (void) initialize:(CDVInvokedUrlCommand *)command {
@@ -56,8 +65,8 @@
   }
 
   [Appboy startWithApiKey:self.APIKey
-            inApplication:notification.object
-        withLaunchOptions:notification.userInfo
+            inApplication:self.application
+        withLaunchOptions:self.launchOptions
         withAppboyOptions:appboyLaunchOptions];
 
   if (![self.disableAutomaticPushRegistration isEqualToString:@"YES"]) {
