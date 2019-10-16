@@ -79,7 +79,7 @@ public class AppboyPlugin extends CordovaPlugin {
       this.apiKey = apiKey;
     }
     else {
-      this.apiKey = cordovaPreferences.getString(APPBOY_API_KEY_PREFERENCE, null);
+      this.apiKey = this.preferences.getString(APPBOY_API_KEY_PREFERENCE, null);
     }
 
     // Configure Appboy using the preferences from the config.xml file passed to our plugin
