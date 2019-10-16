@@ -75,7 +75,7 @@ public class AppboyPlugin extends CordovaPlugin {
   }
 
   public void initialize(String apiKey) {
-    if (apiKey == null) {
+    if (apiKey != null) {
       this.apiKey = apiKey;
     }
     else {
