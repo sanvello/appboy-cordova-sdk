@@ -60,6 +60,7 @@ public class AppboyPlugin extends CordovaPlugin {
   private static final String GET_UNREAD_CARD_COUNT_FOR_CATEGORIES_METHOD = "getUnreadCardCountForCategories";
 
   private String apiKey;
+  private boolean mCanInitialize = false;
   private boolean mPluginInitializationFinished = false;
   private Context mApplicationContext;
   private Map<String, IEventSubscriber<FeedUpdatedEvent>> mFeedSubscriberMap = new ConcurrentHashMap<String, IEventSubscriber<FeedUpdatedEvent>>();
@@ -67,11 +68,6 @@ public class AppboyPlugin extends CordovaPlugin {
   @Override
   protected void pluginInitialize() {
     mApplicationContext = this.cordova.getActivity().getApplicationContext();
-
-    // Since we've likely passed the first Application.onCreate() (due to the plugin lifecycle), lets call the
-    // in-app message manager and session handling now
-    AppboyInAppMessageManager.getInstance().registerInAppMessageManager(this.cordova.getActivity());
-    mPluginInitializationFinished = true;
   }
 
   public void initialize(String apiKey) {
@@ -84,6 +80,13 @@ public class AppboyPlugin extends CordovaPlugin {
 
     // Configure Appboy using the preferences from the config.xml file passed to our plugin
     configureAppboyFromCordovaPreferences(this.preferences);
+
+    // Since we've likely passed the first Application.onCreate() (due to the plugin lifecycle), lets call the
+    // in-app message manager and session handling now
+    AppboyInAppMessageManager.getInstance().registerInAppMessageManager(this.cordova.getActivity());
+
+    mCanInitialize = true;
+    mPluginInitializationFinished = true;
   }
 
 
@@ -265,7 +268,8 @@ public class AppboyPlugin extends CordovaPlugin {
   public void onPause(boolean multitasking) {
     super.onPause(multitasking);
     initializePluginIfAppropriate();
-    AppboyInAppMessageManager.getInstance().unregisterInAppMessageManager(this.cordova.getActivity());
+    if (mPluginInitializationFinished)
+      AppboyInAppMessageManager.getInstance().unregisterInAppMessageManager(this.cordova.getActivity());
   }
 
   @Override
@@ -274,29 +278,32 @@ public class AppboyPlugin extends CordovaPlugin {
     initializePluginIfAppropriate();
     // Registers the AppboyInAppMessageManager for the current Activity. This Activity will now listen for
     // in-app messages from Appboy.
-    AppboyInAppMessageManager.getInstance().registerInAppMessageManager(this.cordova.getActivity());
+    if (mPluginInitializationFinished)
+      AppboyInAppMessageManager.getInstance().registerInAppMessageManager(this.cordova.getActivity());
   }
 
   @Override
   public void onStart() {
     super.onStart();
     initializePluginIfAppropriate();
-    Appboy.getInstance(mApplicationContext).openSession(this.cordova.getActivity());
+    if (mPluginInitializationFinished)
+      Appboy.getInstance(mApplicationContext).openSession(this.cordova.getActivity());
   }
 
   @Override
   public void onStop() {
     super.onStop();
     initializePluginIfAppropriate();
-    Appboy.getInstance(mApplicationContext).closeSession(this.cordova.getActivity());
+    if (mPluginInitializationFinished)
+      Appboy.getInstance(mApplicationContext).closeSession(this.cordova.getActivity());
   }
 
   /**
    * Calls {@link AppboyPlugin#pluginInitialize()} if {@link AppboyPlugin#mPluginInitializationFinished} is false.
    */
   private void initializePluginIfAppropriate() {
-    if (!mPluginInitializationFinished) {
-      pluginInitialize();
+    if (mCanInitialize && !mPluginInitializationFinished) {
+      initialize(this.apiKey);
     }
   }
 
