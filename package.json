@@ -1,6 +1,6 @@
 {
   "name": "appboy-cordova-sdk",
-  "version": "2.11.3"
+  "version": "2.11.4",
   "dependencies": {
     "plugman": "^3.0.1"
   },
