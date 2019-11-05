@@ -337,7 +337,7 @@ public class AppboyPlugin extends CordovaPlugin {
     // Set the flavor
     configBuilder.setSdkFlavor(SdkFlavor.CORDOVA);
 
-    if (cordovaPreferences.contains(APPBOY_API_KEY_PREFERENCE)) {
+    if (this.apiKey != null) {
       configBuilder.setApiKey(this.apiKey);
     }
     if (cordovaPreferences.contains(SMALL_NOTIFICATION_ICON_PREFERENCE)) {
