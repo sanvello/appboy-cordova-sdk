@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.appboy.hellocordova" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>HelloCordova</name>
+    <description>
+        A sample Apache Cordova application for the Braze SDK.
+    </description>
+    <author email="dev@cordova.apache.org" href="http://cordova.io">
+        Apache Cordova Team
+    </author>
+    <content src="index.html" />
+    <access origin="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+    <platform name="android">
+        <allow-intent href="market:*" />
+        <preference name="com.appboy.api_key" value="7ef72382-b92f-4258-9be9-9e19e92f3bf1" />
+        <preference name="com.appboy.firebase_cloud_messaging_registration_enabled" value="true" />
+        <preference name="com.appboy.android_fcm_sender_id" value="str_900857597716" />
+        <preference name="com.appboy.android_default_session_timeout" value="str_5" />
+        <preference name="com.appboy.android_handle_push_deep_links_automatically" value="true" />
+        <preference name="com.appboy.android_log_level" value="0" />
+        <preference name="com.appboy.enable_location_collection" value="false" />
+        <preference name="com.appboy.geofences_enabled" value="false" />
+    </platform>
+    <platform name="ios">
+        <allow-intent href="itms:*" />
+        <allow-intent href="itms-apps:*" />
+        <preference name="com.appboy.api_key" value="06a4b5d1-099b-4910-9604-583ac8f2dc10" />
+        <preference name="com.appboy.ios_disable_automatic_push_registration" value="NO" />
+        <preference name="com.appboy.ios_enable_idfa_automatic_collection" value="YES" />
+        <preference name="com.appboy.enable_location_collection" value="NO" />
+        <preference name="com.appboy.geofences_enabled" value="NO" />
+        <preference name="deployment-target" value="9.0" />
+    </platform>
+    <plugin name="cordova-plugin-whitelist" spec="1" />
+</widget>
