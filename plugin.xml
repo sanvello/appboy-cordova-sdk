@@ -37,14 +37,8 @@
 
   <!-- ios -->
   <platform name="ios">
-    <podspec>
-      <config>
-        <source url="https://github.com/CocoaPods/Specs.git"/>
-      </config>
-      <pods use-frameworks="true">
-        <pod name="Appboy-iOS-SDK" spec="~> 3.20.2" />
-      </pods>
-    </podspec>
+
+    <framework src="Appboy-iOS-SDK" type="podspec" spec="~> 3.20.2" />
 
     <!-- frameworks -->
     <framework src="libz.dylib" />
