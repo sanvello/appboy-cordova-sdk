@@ -1,5 +1,6 @@
 {
   "name": "appboy-cordova-sdk",
+  "version": "2.11.4",
   "dependencies": {
     "plugman": "^3.0.1"
   },
@@ -285,6 +286,5 @@
   "bugs": {
     "url": "https://github.com/pacifica-app/appboy-cordova-sdk/issues"
   },
-  "homepage": "https://github.com/pacifica-app/appboy-cordova-sdk#readme",
-  "version": "2.13.0"
+  "homepage": "https://github.com/pacifica-app/appboy-cordova-sdk#readme"
 }

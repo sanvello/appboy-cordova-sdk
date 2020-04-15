@@ -1,19 +1,3 @@
-## 2.13.0
-
-#### Added
-- Added the Content Cards methods `requestContentCardsRefresh(), getContentCardsFromServer(), getContentCardsFromCache(), launchContentCards(), logContentCardsDisplayed(), logContentCardClicked(), logContentCardImpression(), logContentCardDismissed()` to the javascript plugin.
-  - `getContentCardsFromServer(), getContentCardsFromCache()` both take a success and error callback to handle return values.
-
-#### Changed
-- Updated to [Braze Android SDK 4.0.2](https://github.com/Appboy/appboy-android-sdk/releases/tag/v4.0.2).
-
-## 2.12.0
-
-#### Changed
-- Updated to [Braze Android SDK 3.8.0](https://github.com/Appboy/appboy-android-sdk/releases/tag/v3.8.0).
-- Pinned Android Gradle plugin version to 3.5.1 in `build-extras.gradle`.
-  - Addresses https://github.com/Appboy/appboy-cordova-sdk/issues/46.
-
 ## 2.11.2
 
 **Important:** This patch updates the Braze iOS SDK Dependency from 3.20.1 to 3.20.2, which contains important bugfixes. Integrators should upgrade to this patch version. Please see the [Braze iOS SDK Changelog](https://github.com/Appboy/appboy-ios-sdk/blob/master/CHANGELOG.md) for more information.
