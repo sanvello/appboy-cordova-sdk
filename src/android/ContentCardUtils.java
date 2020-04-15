@@ -64,7 +64,7 @@ public class ContentCardUtils {
     mappedCardJson.put("clicked", card.isClicked());
     mappedCardJson.put("pinned", card.getIsPinned());
     mappedCardJson.put("dismissed", card.isDismissed());
-    mappedCardJson.put("dismissible", card.getIsDismissibleByUser());
+    mappedCardJson.put("dismissible", card.getIsDismissible());
     mappedCardJson.put("url", card.getUrl());
     mappedCardJson.put("openURLInWebView", card.getOpenUriInWebView());
     mappedCardJson.put("extras", new JSONObject(card.getExtras()));
