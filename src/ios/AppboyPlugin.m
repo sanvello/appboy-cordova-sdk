@@ -4,7 +4,7 @@
 #import "AppDelegate+Appboy.h"
 #import "IDFADelegate.h"
 #import <Appboy_iOS_SDK/AppboyNewsFeed.h>
-#import <Appboy_iOS_SDK/"AppboyContentCards.h">
+#import <Appboy_iOS_SDK/AppboyContentCards.h>
 
 @interface AppboyPlugin()
   @property NSString *APIKey;
