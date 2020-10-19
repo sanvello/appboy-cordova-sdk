@@ -27,11 +27,6 @@
     <config-file target="AndroidManifest.xml" parent="/manifest/application">
       <activity android:name="com.appboy.ui.activities.AppboyFeedActivity" />
       <activity android:name="com.appboy.ui.AppboyWebViewActivity"/>
-      <service android:name="com.appboy.AppboyFirebaseMessagingService">
-        <intent-filter>
-          <action android:name="com.google.firebase.MESSAGING_EVENT" />
-        </intent-filter>
-      </service>
     </config-file>
   </platform>
 
