@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-  id="cordova-plugin-appboy" version="2.13.0">
+  id="cordova-plugin-appboy" version="2.18.0">
   <name>Device</name>
   <description>Appboy Cordova SDK</description>
   <license>MIT</license>
@@ -27,18 +27,12 @@
     <config-file target="AndroidManifest.xml" parent="/manifest/application">
       <activity android:name="com.appboy.ui.activities.AppboyFeedActivity" />
       <activity android:name="com.appboy.ui.AppboyWebViewActivity"/>
-      <service android:name="com.appboy.AppboyFirebaseMessagingService">
-        <intent-filter>
-          <action android:name="com.google.firebase.MESSAGING_EVENT" />
-        </intent-filter>
-      </service>
     </config-file>
   </platform>
 
   <!-- ios -->
   <platform name="ios">
-
-    <framework src="Appboy-iOS-SDK" type="podspec" spec="~> 3.20.2" />
+    <framework src="Appboy-iOS-SDK" type="podspec" spec="~> 3.27.0" />
 
     <!-- frameworks -->
     <framework src="libz.dylib" />
