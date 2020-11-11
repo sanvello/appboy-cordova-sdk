@@ -104,13 +104,17 @@ public class AppboyPlugin extends CordovaPlugin {
   @Override
   public boolean execute(final String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
     initializePluginIfAppropriate();
+    
+    if ("initialize".equals(action)) {
+      Log.i(TAG, "Received initialize");
+      initialize(args.getString(0));
+      return true;
+    }
+
     Log.i(TAG, "Received " + action + " with the following arguments: " + args);
 
     // Appboy methods
     switch (action) {
-      case "initialize":
-        initialize(args.getString(0));
-        return true;
       case "registerAppboyPushMessages":
         Appboy.getInstance(mApplicationContext).registerAppboyPushMessages(args.getString(0));
         return true;
