@@ -505,15 +505,24 @@
 
 + (NSString *) getJsonFromExtras:(NSDictionary *)extras {
   NSError *error;
-  NSData *jsonData = [NSJSONSerialization dataWithJSONObject:extras
+
+  // Don't try to create json from a nil object, it will crash. It appears
+  // that Braze itself is passing this in, it is not coming from Sanvello
+  // configurations or code.
+  if (extras != nil) {
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:extras
                                                      options:0
                                                        error:&error];
-  
-  if (!jsonData) {
-    NSLog(@"Got an error in getJsonFromExtras: %@", error);
-    return @"{}";
-  } else {
-    return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    if (!jsonData) {
+      NSLog(@"Got an error in getJsonFromExtras: %@", error);
+      return @"{}";
+    } else {
+      return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    }
+  }
+  else {
+      NSLog(@"No extras to parse in getJsonFromExtras.");
+      return @"{}";
   }
 }
 
