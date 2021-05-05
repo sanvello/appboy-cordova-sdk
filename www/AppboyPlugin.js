@@ -278,6 +278,15 @@ AppboyPlugin.prototype.unsetCustomUserAttribute = function (key) {
 	cordova.exec(null, null, "AppboyPlugin", "unsetCustomUserAttribute", [key]);
 }
 
+/**
+ * Adds an alias for the user.
+ * @param {string} alias - An identifier for this user.
+ * @param {string} label - A label for the alias. e.g. the source of the alias, like "internal_id"
+ */
+AppboyPlugin.prototype.addAlias = function (alias, label) {
+	cordova.exec(null, null, "AppboyPlugin", "addAlias", [alias, label]);
+}
+
 // Other
 /**
  * Launches the News Feed UI element.
@@ -356,7 +365,7 @@ AppboyPlugin.prototype.requestImmediateDataFlush = function () {
 * Requests the latest Content Cards from the Braze SDK server.
 */
 AppboyPlugin.prototype.requestContentCardsRefresh = function () {
-	cordova.exec(successCallback, errorCallback, "AppboyPlugin", "requestContentCardsRefresh");
+	cordova.exec(null, null, "AppboyPlugin", "requestContentCardsRefresh");
 }
 
 /**
@@ -406,6 +415,27 @@ AppboyPlugin.prototype.logContentCardImpression = function (cardId) {
  */
 AppboyPlugin.prototype.logContentCardDismissed = function (cardId) {
 	cordova.exec(null, null, "AppboyPlugin", "logContentCardDismissed", [cardId]);
+}
+
+/**
+ * Sets the language for a user. Language Strings should be valid ISO 639-1 language codes. See loc.gov/standards/iso639-2/php/code_list.php.
+ */
+AppboyPlugin.prototype.setLanguage = function (language) {
+	cordova.exec(null, null, "AppboyPlugin", "setLanguage", [language]);
+}
+
+/**
+ * @return An app specific ID that is stored on the device.
+ */
+AppboyPlugin.prototype.getDeviceId = function (successCallback, errorCallback) {
+	cordova.exec(successCallback, errorCallback, "AppboyPlugin", "getDeviceId");
+}
+
+/**
+ * @return Starts SDK session tracking if previously disabled. Only used for Android.
+ */
+AppboyPlugin.prototype.startSessionTracking = function () {
+	cordova.exec(null, null, "AppboyPlugin", "startSessionTracking");
 }
 
 AppboyPlugin.prototype['NotificationSubscriptionTypes'] = {

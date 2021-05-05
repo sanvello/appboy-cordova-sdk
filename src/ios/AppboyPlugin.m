@@ -1,10 +1,24 @@
 #import "AppboyPlugin.h"
+
+#if __has_include(<Appboy_iOS_SDK/AppboyKit.h>)
 #import <Appboy_iOS_SDK/AppboyKit.h>
 #import <Appboy_iOS_SDK/ABKAttributionData.h>
-#import "AppDelegate+Appboy.h"
-#import "IDFADelegate.h"
 #import <Appboy_iOS_SDK/AppboyNewsFeed.h>
 #import <Appboy_iOS_SDK/AppboyContentCards.h>
+#elif __has_include(<Appboy-iOS-SDK/Appboy_iOS_SDK.framework/Headers/AppboyKit.h>)
+#import <Appboy-iOS-SDK/Appboy_iOS_SDK.framework/Headers/AppboyKit.h>
+#import <Appboy-iOS-SDK/Appboy_iOS_SDK.framework/Headers/ABKAttributionData.h>
+#import <Appboy-iOS-SDK/Appboy_iOS_SDK.framework/Headers/AppboyNewsFeed.h>
+#import <Appboy-iOS-SDK/Appboy_iOS_SDK.framework/Headers/AppboyContentCards.h>
+#else
+#import "AppboyKit.h"
+#import "ABKAttributionData.h"
+#import "AppboyNewsFeed.h"
+#import "AppboyContentCards.h"
+#endif
+
+#import "AppDelegate+Appboy.h"
+#import "IDFADelegate.h"
 
 @interface AppboyPlugin()
   @property NSString *APIKey;
@@ -16,6 +30,7 @@
   @property NSString *enableGeofences;
   @property UIApplication *application;
   @property NSDictionary *launchOptions;
+  @property NSString *disableUNAuthorizationOptionProvisional;
 @end
 
 @implementation AppboyPlugin
@@ -29,6 +44,7 @@
   self.enableIDFACollection = settings[@"com.appboy.ios_enable_idfa_automatic_collection"];
   self.enableLocationCollection = settings[@"com.appboy.enable_location_collection"];
   self.enableGeofences = settings[@"com.appboy.geofences_enabled"];
+  self.disableUNAuthorizationOptionProvisional = settings[@"com.appboy.ios_disable_un_authorization_option_provisional"];
 
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didFinishLaunchingListener:) name:UIApplicationDidFinishLaunchingNotification object:nil];
   if (![self.disableAutomaticPushHandling isEqualToString:@"YES"]) {
@@ -80,11 +96,12 @@
       }
       UNAuthorizationOptions options = UNAuthorizationOptionAlert | UNAuthorizationOptionSound | UNAuthorizationOptionBadge;
       if (@available(iOS 12.0, *)) {
-        options = options | UNAuthorizationOptionProvisional;
+        if (![self.disableUNAuthorizationOptionProvisional isEqualToString:@"YES"]) {
+          options = options | UNAuthorizationOptionProvisional;
+        }
       }
       [center requestAuthorizationWithOptions:options
                             completionHandler:^(BOOL granted, NSError *_Nullable error) {
-                              NSLog(@"Permission granted.");
                               [[Appboy sharedInstance] pushAuthorizationFromUserNotificationCenter:granted];
                             }];
       [[UIApplication sharedApplication] registerForRemoteNotifications];
@@ -305,6 +322,26 @@
   }
 }
 
+- (void) addAlias:(CDVInvokedUrlCommand *)command {
+  NSString *aliasName = [command argumentAtIndex:0 withDefault:nil];
+  NSString *aliasLabel = [command argumentAtIndex:1 withDefault:nil];
+  if (aliasName != nil && aliasLabel != nil) {
+    [[Appboy sharedInstance].user addAlias:aliasName withLabel:aliasLabel];
+  }
+}
+
+- (void) setLanguage:(CDVInvokedUrlCommand *)command {
+  NSString *language = [command argumentAtIndex:0 withDefault:nil];
+  if (language != nil) {
+    [Appboy sharedInstance].user.language = language;
+  }
+}
+
+- (void) getDeviceId:(CDVInvokedUrlCommand *)command {
+  NSString *deviceId = [[Appboy sharedInstance] getDeviceId];
+  [self sendCordovaSuccessPluginResultWithString:deviceId andCommand:command];
+}
+
 /*-------Appboy UI-------*/
 - (void) launchNewsFeed:(CDVInvokedUrlCommand *)command {
   ABKNewsFeedViewController *newsFeed = [[ABKNewsFeedViewController alloc] init];
@@ -437,12 +474,12 @@
 
 - (void) getContentCardsFromCache:(CDVInvokedUrlCommand *)command {
   NSArray<ABKContentCard *> *cards = [[Appboy sharedInstance].contentCardsController getContentCards];
-  
+
   NSMutableArray *mappedCards = [NSMutableArray arrayWithCapacity:[cards count]];
   [cards enumerateObjectsUsingBlock:^(id card, NSUInteger idx, BOOL *stop) {
      [mappedCards addObject:[AppboyPlugin RCTFormatContentCard:card]];
   }];
-  
+
   [self sendCordovaSuccessPluginResultWithArray:mappedCards andCommand:command];
 }
 
@@ -450,17 +487,17 @@
   NSArray<ABKContentCard *> *cards = [[Appboy sharedInstance].contentCardsController getContentCards];
   NSPredicate *predicate = [NSPredicate predicateWithFormat:@"idString == %@", idString];
   NSArray *filteredArray = [cards filteredArrayUsingPredicate:predicate];
-  
+
   if (filteredArray.count) {
     return filteredArray[0];
   }
-  
+
   return nil;
 }
 
 + (NSDictionary *) RCTFormatContentCard:(ABKContentCard *)card {
   NSMutableDictionary *formattedContentCardData = [NSMutableDictionary dictionary];
-  
+
   formattedContentCardData[@"id"] = card.idString;
   formattedContentCardData[@"created"] = @(card.created);
   formattedContentCardData[@"expiresAt"] = @(card.expiresAt);
@@ -471,9 +508,9 @@
   formattedContentCardData[@"dismissible"] = @(card.dismissible);
   formattedContentCardData[@"url"] = card.urlString ?: [NSNull null];
   formattedContentCardData[@"openURLInWebView"] = @(card.openUrlInWebView);
-  
+
   formattedContentCardData[@"extras"] = [AppboyPlugin getJsonFromExtras:card.extras];
-  
+
   if ([card isKindOfClass:[ABKCaptionedImageContentCard class]]) {
     ABKCaptionedImageContentCard *captionedCard = (ABKCaptionedImageContentCard *)card;
     formattedContentCardData[@"image"] = captionedCard.image;
@@ -483,23 +520,23 @@
     formattedContentCardData[@"domain"] = captionedCard.domain ?: [NSNull null];
     formattedContentCardData[@"type"] = @"Captioned";
   }
-  
+
   if ([card isKindOfClass:[ABKBannerContentCard class]]) {
     ABKBannerContentCard *bannerCard = (ABKBannerContentCard *)card;
     formattedContentCardData[@"image"] = bannerCard.image;
     formattedContentCardData[@"imageAspectRatio"] = @(bannerCard.imageAspectRatio);
     formattedContentCardData[@"type"] = @"Banner";
   }
-  
+
   if ([card isKindOfClass:[ABKClassicContentCard class]]) {
-    ABKClassicContentCard *classicCard = (ABKClassicContentCard *)card; 
+    ABKClassicContentCard *classicCard = (ABKClassicContentCard *)card;
     formattedContentCardData[@"image"] = classicCard.image ?: [NSNull null];
     formattedContentCardData[@"title"] = classicCard.title;
     formattedContentCardData[@"cardDescription"] = classicCard.cardDescription;
     formattedContentCardData[@"domain"] = classicCard.domain ?: [NSNull null];
     formattedContentCardData[@"type"] = @"Classic";
   }
-  
+
   return formattedContentCardData;
 }
 
@@ -513,6 +550,7 @@
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:extras
                                                      options:0
                                                        error:&error];
+
     if (!jsonData) {
       NSLog(@"Got an error in getJsonFromExtras: %@", error);
       return @"{}";
@@ -529,6 +567,12 @@
 - (void) sendCordovaErrorPluginResultWithString:(NSString *)resultMessage andCommand:(CDVInvokedUrlCommand *)command {
   CDVPluginResult *pluginResult = nil;
   pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:resultMessage];
+  [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+- (void) sendCordovaSuccessPluginResultWithString:(NSString *)resultMessage andCommand:(CDVInvokedUrlCommand *)command {
+  CDVPluginResult *pluginResult = nil;
+  pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:resultMessage];
   [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
