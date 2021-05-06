@@ -55,10 +55,13 @@ onDeviceReady: function() {
     document.getElementById("getAllContentCardsBtn").addEventListener("click", getContentCardsFromServer);
     document.getElementById("logContentCardsDisplayedBtn").addEventListener("click", logContentCardsDisplayed);
     document.getElementById("logContentCardAnalyticsBtn").addEventListener("click", logContentCardAnalytics);
+    document.getElementById("addAliasBtn").addEventListener("click", addAlias);
     document.getElementById("wipeData").addEventListener("click", wipeData);
     document.getElementById("enableSdk").addEventListener("click", enableSdk);
     document.getElementById("disableSdk").addEventListener("click", disableSdk);
     document.getElementById("requestFlushBtn").addEventListener("click", requestDataFlush);
+    document.getElementById("setLanguageBtn").addEventListener("click", setLanguage);
+    document.getElementById("getDeviceId").addEventListener("click", getDeviceId);
 
     var success = function(message) {
         alert(message);
@@ -245,6 +248,20 @@ function logContentCardAnalytics() {
         AppboyPlugin.logContentCardImpression(firstCardId);
         AppboyPlugin.logContentCardDismissed(firstCardId);
     });
+}
+
+function addAlias() {
+    AppboyPlugin.addAlias("foo123", "bar456");
+    showTextBubble("Add alias called");
+}
+
+function setLanguage() {
+    AppboyPlugin.setLanguage("fr");
+    showTextBubble("Set Language called");
+}
+
+function getDeviceId() {
+    AppboyPlugin.getDeviceId(customPluginSuccessCallback("DeviceID: "), customPluginErrorCallback);
 }
 
 // Other helper functions
