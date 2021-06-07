@@ -78,7 +78,7 @@ public class AppboyPlugin extends CordovaPlugin {
   private Context mApplicationContext;
   private Map<String, IEventSubscriber<FeedUpdatedEvent>> mFeedSubscriberMap = new ConcurrentHashMap<>();
 
-  private boolean mForceSessionReset = false;
+  private boolean mShouldForceSessionReset = true;
 
   @Override
   protected void pluginInitialize() {
@@ -105,8 +105,8 @@ public class AppboyPlugin extends CordovaPlugin {
 
     // Special case when app is ran from a shutdown state, does not interfere with Braze's default lifecycle
     
-    if (!mForceSessionReset) {
-      mForceSessionReset = true;
+    if (mShouldForceSessionReset) {
+      mShouldForceSessionReset = false;
       new CountDownTimer(12000, 500) {
         @Override
         public void onTick(long millisUntilFinished) {
