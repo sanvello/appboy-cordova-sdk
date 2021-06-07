@@ -2,6 +2,7 @@ package com.appboy.cordova;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.CountDownTimer;
 import android.util.Log;
 
 import com.appboy.Appboy;
@@ -26,7 +27,6 @@ import com.appboy.ui.inappmessage.AppboyInAppMessageManager;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaPreferences;
-import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -78,6 +78,8 @@ public class AppboyPlugin extends CordovaPlugin {
   private Context mApplicationContext;
   private Map<String, IEventSubscriber<FeedUpdatedEvent>> mFeedSubscriberMap = new ConcurrentHashMap<>();
 
+  private boolean mForceSessionReset = false;
+
   @Override
   protected void pluginInitialize() {
     mApplicationContext = this.cordova.getActivity().getApplicationContext();
@@ -100,6 +102,26 @@ public class AppboyPlugin extends CordovaPlugin {
 
     mCanInitialize = true;
     mPluginInitializationFinished = true;
+
+    // Special case when app is ran from a shutdown state, does not interfere with Braze's default lifecycle
+    
+    if (!mForceSessionReset) {
+      mForceSessionReset = true;
+      new CountDownTimer(12000, 500) {
+        @Override
+        public void onTick(long millisUntilFinished) {
+        }
+        
+        @Override
+        public void onFinish() {
+          cordova.getActivity().runOnUiThread(() -> {
+            Appboy.getInstance(mApplicationContext).openSession(cordova.getActivity());
+            AppboyInAppMessageManager.getInstance().registerInAppMessageManager(cordova.getActivity());
+            AppboyInAppMessageManager.getInstance().requestDisplayInAppMessage();
+          });
+        }
+      }.start(); 
+    }
   }
 
 
