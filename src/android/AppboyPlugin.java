@@ -5,9 +5,7 @@ import android.content.Intent;
 import android.os.CountDownTimer;
 import android.util.Log;
 
-import com.appboy.Appboy;
 import com.appboy.AppboyUser;
-import com.appboy.configuration.AppboyConfig;
 import com.appboy.enums.CardCategory;
 import com.appboy.enums.Gender;
 import com.appboy.enums.Month;
@@ -23,6 +21,8 @@ import com.appboy.support.AppboyLogger;
 import com.appboy.ui.activities.AppboyContentCardsActivity;
 import com.appboy.ui.activities.AppboyFeedActivity;
 import com.appboy.ui.inappmessage.AppboyInAppMessageManager;
+import com.braze.Braze;
+import com.braze.configuration.BrazeConfig;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AppboyPlugin extends CordovaPlugin {
-  private static final String TAG = String.format("Appboy.%s", AppboyPlugin.class.getName());
+  private static final String TAG = "BrazeCordova";
 
   // Preference keys found in the config.xml
   private static final String APPBOY_API_KEY_PREFERENCE = "com.appboy.api_key";
@@ -76,7 +76,7 @@ public class AppboyPlugin extends CordovaPlugin {
   private boolean mPluginInitializationFinished = false;
   private boolean mDisableAutoStartSessions = false;
   private Context mApplicationContext;
-  private Map<String, IEventSubscriber<FeedUpdatedEvent>> mFeedSubscriberMap = new ConcurrentHashMap<>();
+  private final Map<String, IEventSubscriber<FeedUpdatedEvent>> mFeedSubscriberMap = new ConcurrentHashMap<>();
 
   private boolean mShouldForceSessionReset = true;
 
@@ -115,7 +115,7 @@ public class AppboyPlugin extends CordovaPlugin {
         @Override
         public void onFinish() {
           cordova.getActivity().runOnUiThread(() -> {
-            Appboy.getInstance(mApplicationContext).openSession(cordova.getActivity());
+            Braze.getInstance(mApplicationContext).openSession(cordova.getActivity());
             AppboyInAppMessageManager.getInstance().registerInAppMessageManager(cordova.getActivity());
             AppboyInAppMessageManager.getInstance().requestDisplayInAppMessage();
           });
@@ -142,17 +142,17 @@ public class AppboyPlugin extends CordovaPlugin {
         mDisableAutoStartSessions = false;
         return true;
       case "registerAppboyPushMessages":
-        Appboy.getInstance(mApplicationContext).registerAppboyPushMessages(args.getString(0));
+        Braze.getInstance(mApplicationContext).registerAppboyPushMessages(args.getString(0));
         return true;
       case "changeUser":
-        Appboy.getInstance(mApplicationContext).changeUser(args.getString(0));
+        Braze.getInstance(mApplicationContext).changeUser(args.getString(0));
         return true;
       case "logCustomEvent": {
         AppboyProperties properties = null;
         if (args.get(1) != JSONObject.NULL) {
           properties = new AppboyProperties(args.getJSONObject(1));
         }
-        Appboy.getInstance(mApplicationContext).logCustomEvent(args.getString(0), properties);
+        Braze.getInstance(mApplicationContext).logCustomEvent(args.getString(0), properties);
         return true;
       }
       case "logPurchase": {
@@ -168,33 +168,33 @@ public class AppboyPlugin extends CordovaPlugin {
         if (args.get(4) != JSONObject.NULL) {
           properties = new AppboyProperties(args.getJSONObject(4));
         }
-        Appboy.getInstance(mApplicationContext).logPurchase(args.getString(0), currencyCode, new BigDecimal(args.getDouble(1)), quantity, properties);
+        Braze.getInstance(mApplicationContext).logPurchase(args.getString(0), currencyCode, new BigDecimal(args.getDouble(1)), quantity, properties);
         return true;
       }
       case "wipeData":
-        Appboy.wipeData(mApplicationContext);
+        Braze.wipeData(mApplicationContext);
         mPluginInitializationFinished = false;
         return true;
       case "enableSdk":
-        Appboy.enableSdk(mApplicationContext);
+        Braze.enableSdk(mApplicationContext);
         return true;
       case "disableSdk":
-        Appboy.disableSdk(mApplicationContext);
+        Braze.disableSdk(mApplicationContext);
         mPluginInitializationFinished = false;
         return true;
       case "requestImmediateDataFlush":
-        Appboy.getInstance(mApplicationContext).requestImmediateDataFlush();
+        Braze.getInstance(mApplicationContext).requestImmediateDataFlush();
         return true;
       case "requestContentCardsRefresh":
-        Appboy.getInstance(mApplicationContext).requestContentCardsRefresh(false);
+        Braze.getInstance(mApplicationContext).requestContentCardsRefresh(false);
         return true;
       case "getDeviceId":
-        callbackContext.success(Appboy.getInstance(mApplicationContext).getDeviceId());
+        callbackContext.success(Braze.getInstance(mApplicationContext).getDeviceId());
         return true;
     }
 
     // Appboy User methods
-    AppboyUser currentUser = Appboy.getInstance(mApplicationContext).getCurrentUser();
+    AppboyUser currentUser = Braze.getInstance(mApplicationContext).getCurrentUser();
     if (currentUser != null) {
       switch (action) {
         case "setUserAttributionData":
@@ -330,7 +330,7 @@ public class AppboyPlugin extends CordovaPlugin {
       case GET_CONTENT_CARDS_FROM_CACHE_METHOD:
         return handleContentCardsUpdateGetters(action, callbackContext);
       case LOG_CONTENT_CARDS_DISPLAYED_METHOD:
-        Appboy.getInstance(mApplicationContext).logContentCardsDisplayed();
+        Braze.getInstance(mApplicationContext).logContentCardsDisplayed();
         return true;
       case LOG_CONTENT_CARDS_CLICKED_METHOD:
       case LOG_CONTENT_CARDS_DISMISSED_METHOD:
@@ -358,22 +358,25 @@ public class AppboyPlugin extends CordovaPlugin {
     // in-app messages from Appboy.
     if (mPluginInitializationFinished)
       AppboyInAppMessageManager.getInstance().registerInAppMessageManager(this.cordova.getActivity());
+
   }
 
   @Override
   public void onStart() {
     super.onStart();
     initializePluginIfAppropriate();
-    if (mPluginInitializationFinished && !mDisableAutoStartSessions)
-      Appboy.getInstance(mApplicationContext).openSession(this.cordova.getActivity());
+    if (mPluginInitializationFinished && !mDisableAutoStartSessions) {
+      Braze.getInstance(mApplicationContext).openSession(this.cordova.getActivity());
+    }
   }
 
   @Override
   public void onStop() {
     super.onStop();
     initializePluginIfAppropriate();
-    if (mPluginInitializationFinished && !mDisableAutoStartSessions)
-      Appboy.getInstance(mApplicationContext).closeSession(this.cordova.getActivity());
+    if (mPluginInitializationFinished && !mDisableAutoStartSessions) {
+      Braze.getInstance(mApplicationContext).closeSession(this.cordova.getActivity());
+    }
   }
 
   /**
@@ -386,7 +389,7 @@ public class AppboyPlugin extends CordovaPlugin {
   }
 
   /**
-   * Calls {@link Appboy#configure(Context, AppboyConfig)} using the values found from the {@link CordovaPreferences}.
+   * Calls {@link Braze#configure(Context, BrazeConfig)} using the values found from the {@link CordovaPreferences}.
    *
    * @param cordovaPreferences the preferences used to initialize this plugin
    */
@@ -402,7 +405,7 @@ public class AppboyPlugin extends CordovaPlugin {
     if (cordovaPreferences.contains(CUSTOM_API_ENDPOINT_PREFERENCE)) {
       final String customApiEndpoint = cordovaPreferences.getString(CUSTOM_API_ENDPOINT_PREFERENCE, "");
       if (!customApiEndpoint.equals("")) {
-        Appboy.setAppboyEndpointProvider(appboyEndpoint ->
+        Braze.setAppboyEndpointProvider(appboyEndpoint ->
             appboyEndpoint.buildUpon()
             .authority(customApiEndpoint).build()
         );
@@ -416,7 +419,7 @@ public class AppboyPlugin extends CordovaPlugin {
     }
 
     // Set the values used in the config builder
-    AppboyConfig.Builder configBuilder = new AppboyConfig.Builder();
+    BrazeConfig.Builder configBuilder = new BrazeConfig.Builder();
 
     // Set the flavor
     configBuilder.setSdkFlavor(SdkFlavor.CORDOVA);
@@ -452,14 +455,14 @@ public class AppboyPlugin extends CordovaPlugin {
       configBuilder.setGeofencesEnabled(cordovaPreferences.getBoolean(ENABLE_GEOFENCES_PREFERENCE, false));
     }
 
-    Appboy.configure(mApplicationContext, configBuilder.build());
+    Braze.configure(mApplicationContext, configBuilder.build());
   }
 
   private boolean handleNewsFeedGetters(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
     IEventSubscriber<FeedUpdatedEvent> feedUpdatedSubscriber = null;
     boolean requestingFeedUpdateFromCache = false;
 
-    final Appboy mAppboy = Appboy.getInstance(mApplicationContext);
+    final Braze braze = Braze.getInstance(mApplicationContext);
     final String callbackId = callbackContext.getCallbackId();
 
     switch (action) {
@@ -475,7 +478,7 @@ public class AppboyPlugin extends CordovaPlugin {
           }
 
           // Remove this listener from the map and from Appboy
-          mAppboy.removeSingleSubscription(mFeedSubscriberMap.get(callbackId), FeedUpdatedEvent.class);
+          braze.removeSingleSubscription(mFeedSubscriberMap.get(callbackId), FeedUpdatedEvent.class);
           mFeedSubscriberMap.remove(callbackId);
         };
         requestingFeedUpdateFromCache = true;
@@ -490,7 +493,7 @@ public class AppboyPlugin extends CordovaPlugin {
           }
 
           // Remove this listener from the map and from Appboy
-          mAppboy.removeSingleSubscription(mFeedSubscriberMap.get(callbackId), FeedUpdatedEvent.class);
+          braze.removeSingleSubscription(mFeedSubscriberMap.get(callbackId), FeedUpdatedEvent.class);
           mFeedSubscriberMap.remove(callbackId);
         };
         requestingFeedUpdateFromCache = true;
@@ -512,7 +515,7 @@ public class AppboyPlugin extends CordovaPlugin {
           }
 
           // Remove this listener from the map and from Appboy
-          mAppboy.removeSingleSubscription(mFeedSubscriberMap.get(callbackId), FeedUpdatedEvent.class);
+          braze.removeSingleSubscription(mFeedSubscriberMap.get(callbackId), FeedUpdatedEvent.class);
           mFeedSubscriberMap.remove(callbackId);
         };
         requestingFeedUpdateFromCache = false;
@@ -523,12 +526,12 @@ public class AppboyPlugin extends CordovaPlugin {
     if (feedUpdatedSubscriber != null) {
       // Put the subscriber into a map so we can remove it later from future subscriptions
       mFeedSubscriberMap.put(callbackId, feedUpdatedSubscriber);
-      mAppboy.subscribeToFeedUpdates(feedUpdatedSubscriber);
+      braze.subscribeToFeedUpdates(feedUpdatedSubscriber);
 
       if (requestingFeedUpdateFromCache) {
-        mAppboy.requestFeedRefreshFromCache();
+        braze.requestFeedRefreshFromCache();
       } else {
-        mAppboy.requestFeedRefresh();
+        braze.requestFeedRefresh();
       }
     }
 
@@ -540,20 +543,20 @@ public class AppboyPlugin extends CordovaPlugin {
     final IEventSubscriber<ContentCardsUpdatedEvent> subscriber = new IEventSubscriber<ContentCardsUpdatedEvent>() {
       @Override
       public void trigger(ContentCardsUpdatedEvent event) {
-        Appboy.getInstance(mApplicationContext).removeSingleSubscription(this, ContentCardsUpdatedEvent.class);
+        Braze.getInstance(mApplicationContext).removeSingleSubscription(this, ContentCardsUpdatedEvent.class);
 
         // Map the content cards to JSON and return to the client
         callbackContext.success(ContentCardUtils.mapContentCards(event.getAllCards()));
       }
     };
-    Appboy.getInstance(mApplicationContext).subscribeToContentCardsUpdates(subscriber);
+    Braze.getInstance(mApplicationContext).subscribeToContentCardsUpdates(subscriber);
     final boolean updateFromCache = action.equals(GET_CONTENT_CARDS_FROM_CACHE_METHOD);
-    Appboy.getInstance(mApplicationContext).requestContentCardsRefresh(updateFromCache);
+    Braze.getInstance(mApplicationContext).requestContentCardsRefresh(updateFromCache);
     return true;
   }
 
   private boolean handleContentCardsLogMethods(String action, JSONArray args, final CallbackContext callbackContext) {
-    final Appboy appboy = Appboy.getInstance(mApplicationContext);
+    final Braze braze = Braze.getInstance(mApplicationContext);
     final String cardId;
 
     if (args.length() != 1) {
@@ -574,7 +577,7 @@ public class AppboyPlugin extends CordovaPlugin {
     // Only obtaining the current list of cached cards is ok since
     // no id passed in could refer to a card on the server that isn't
     // contained in the list of cached cards
-    final List<Card> cachedContentCards = appboy.getCachedContentCards();
+    final List<Card> cachedContentCards = braze.getCachedContentCards();
 
     // Get the desired card by its id
     final Card desiredCard = ContentCardUtils.getCardById(cachedContentCards, cardId);
