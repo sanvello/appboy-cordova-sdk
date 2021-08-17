@@ -5,24 +5,24 @@ import android.content.Intent;
 import android.os.CountDownTimer;
 import android.util.Log;
 
-import com.appboy.AppboyUser;
 import com.appboy.enums.CardCategory;
 import com.appboy.enums.Gender;
 import com.appboy.enums.Month;
 import com.appboy.enums.NotificationSubscriptionType;
 import com.appboy.enums.SdkFlavor;
-import com.appboy.events.ContentCardsUpdatedEvent;
 import com.appboy.events.FeedUpdatedEvent;
 import com.appboy.events.IEventSubscriber;
 import com.appboy.models.cards.Card;
-import com.appboy.models.outgoing.AppboyProperties;
 import com.appboy.models.outgoing.AttributionData;
-import com.appboy.support.AppboyLogger;
-import com.appboy.ui.activities.AppboyContentCardsActivity;
 import com.appboy.ui.activities.AppboyFeedActivity;
-import com.appboy.ui.inappmessage.AppboyInAppMessageManager;
 import com.braze.Braze;
+import com.braze.BrazeUser;
 import com.braze.configuration.BrazeConfig;
+import com.braze.events.ContentCardsUpdatedEvent;
+import com.braze.models.outgoing.BrazeProperties;
+import com.braze.support.BrazeLogger;
+import com.braze.ui.activities.ContentCardsActivity;
+import com.braze.ui.inappmessage.BrazeInAppMessageManager;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -94,11 +94,11 @@ public class AppboyPlugin extends CordovaPlugin {
     }
 
     // Configure Appboy using the preferences from the config.xml file passed to our plugin
-    configureAppboyFromCordovaPreferences(this.preferences);
+    configureFromCordovaPreferences(this.preferences);
 
     // Since we've likely passed the first Application.onCreate() (due to the plugin lifecycle), lets call the
     // in-app message manager and session handling now
-    AppboyInAppMessageManager.getInstance().registerInAppMessageManager(this.cordova.getActivity());
+    BrazeInAppMessageManager.getInstance().registerInAppMessageManager(this.cordova.getActivity());
 
     mCanInitialize = true;
     mPluginInitializationFinished = true;
@@ -116,8 +116,8 @@ public class AppboyPlugin extends CordovaPlugin {
         public void onFinish() {
           cordova.getActivity().runOnUiThread(() -> {
             Braze.getInstance(mApplicationContext).openSession(cordova.getActivity());
-            AppboyInAppMessageManager.getInstance().registerInAppMessageManager(cordova.getActivity());
-            AppboyInAppMessageManager.getInstance().requestDisplayInAppMessage();
+            BrazeInAppMessageManager.getInstance().registerInAppMessageManager(cordova.getActivity());
+            BrazeInAppMessageManager.getInstance().requestDisplayInAppMessage();
           });
         }
       }.start(); 
@@ -148,9 +148,9 @@ public class AppboyPlugin extends CordovaPlugin {
         Braze.getInstance(mApplicationContext).changeUser(args.getString(0));
         return true;
       case "logCustomEvent": {
-        AppboyProperties properties = null;
+        BrazeProperties properties = null;
         if (args.get(1) != JSONObject.NULL) {
-          properties = new AppboyProperties(args.getJSONObject(1));
+          properties = new BrazeProperties(args.getJSONObject(1));
         }
         Braze.getInstance(mApplicationContext).logCustomEvent(args.getString(0), properties);
         return true;
@@ -164,9 +164,9 @@ public class AppboyPlugin extends CordovaPlugin {
         if (args.get(3) != JSONObject.NULL) {
           quantity = args.getInt(3);
         }
-        AppboyProperties properties = null;
+        BrazeProperties properties = null;
         if (args.get(4) != JSONObject.NULL) {
-          properties = new AppboyProperties(args.getJSONObject(4));
+          properties = new BrazeProperties(args.getJSONObject(4));
         }
         Braze.getInstance(mApplicationContext).logPurchase(args.getString(0), currencyCode, new BigDecimal(args.getDouble(1)), quantity, properties);
         return true;
@@ -194,7 +194,7 @@ public class AppboyPlugin extends CordovaPlugin {
     }
 
     // Appboy User methods
-    AppboyUser currentUser = Braze.getInstance(mApplicationContext).getCurrentUser();
+    BrazeUser currentUser = Braze.getInstance(mApplicationContext).getCurrentUser();
     if (currentUser != null) {
       switch (action) {
         case "setUserAttributionData":
@@ -242,10 +242,25 @@ public class AppboyPlugin extends CordovaPlugin {
           return true;
         case "setGender":
           String gender = args.getString(0).toLowerCase();
-          if (gender.equals("m")) {
-            currentUser.setGender(Gender.MALE);
-          } else if (gender.equals("f")) {
-            currentUser.setGender(Gender.FEMALE);
+          switch (gender) {
+            case "f":
+              currentUser.setGender(Gender.FEMALE);
+              break;
+            case "m":
+              currentUser.setGender(Gender.MALE);
+              break;
+            case "n":
+              currentUser.setGender(Gender.NOT_APPLICABLE);
+              break;
+            case "o":
+              currentUser.setGender(Gender.OTHER);
+              break;
+            case "p":
+              currentUser.setGender(Gender.PREFER_NOT_TO_SAY);
+              break;
+            case "u":
+              currentUser.setGender(Gender.UNKNOWN);
+              break;
           }
           return true;
         case "addAlias":
@@ -311,7 +326,7 @@ public class AppboyPlugin extends CordovaPlugin {
         this.cordova.getActivity().startActivity(intent);
         return true;
       case "launchContentCards":
-        intent = new Intent(mApplicationContext, AppboyContentCardsActivity.class);
+        intent = new Intent(mApplicationContext, ContentCardsActivity.class);
         this.cordova.getActivity().startActivity(intent);
         return true;
     }
@@ -346,20 +361,22 @@ public class AppboyPlugin extends CordovaPlugin {
   public void onPause(boolean multitasking) {
     super.onPause(multitasking);
     initializePluginIfAppropriate();
-    if (mPluginInitializationFinished)
-      AppboyInAppMessageManager.getInstance().unregisterInAppMessageManager(this.cordova.getActivity());
+    
+    if (mPluginInitializationFinished) {
+      BrazeInAppMessageManager.getInstance().unregisterInAppMessageManager(this.cordova.getActivity());
+    }
   }
 
   @Override
   public void onResume(boolean multitasking) {
     super.onResume(multitasking);
     initializePluginIfAppropriate();
-    // Registers the AppboyInAppMessageManager for the current Activity. This Activity will now listen for
+    // Registers the BrazeInAppMessageManager for the current Activity. This Activity will now listen for
     // in-app messages from Appboy.
-    if (mPluginInitializationFinished)
-      AppboyInAppMessageManager.getInstance().registerInAppMessageManager(this.cordova.getActivity());
-
-  }
+    if (mPluginInitializationFinished) {
+      BrazeInAppMessageManager.getInstance().registerInAppMessageManager(this.cordova.getActivity());
+    }
+}
 
   @Override
   public void onStart() {
@@ -393,12 +410,12 @@ public class AppboyPlugin extends CordovaPlugin {
    *
    * @param cordovaPreferences the preferences used to initialize this plugin
    */
-  private void configureAppboyFromCordovaPreferences(CordovaPreferences cordovaPreferences) {
-    AppboyLogger.d(TAG, "Setting Cordova preferences: " + cordovaPreferences.getAll());
+  private void configureFromCordovaPreferences(CordovaPreferences cordovaPreferences) {
+    BrazeLogger.d(TAG, "Setting Cordova preferences: " + cordovaPreferences.getAll());
 
     // Set the log level
     if (cordovaPreferences.contains(APPBOY_LOG_LEVEL_PREFERENCE)) {
-      AppboyLogger.setLogLevel(cordovaPreferences.getInteger(APPBOY_LOG_LEVEL_PREFERENCE, Log.INFO));
+      BrazeLogger.setLogLevel(cordovaPreferences.getInteger(APPBOY_LOG_LEVEL_PREFERENCE, Log.INFO));
     }
 
     // Set the custom endpoint
@@ -414,7 +431,7 @@ public class AppboyPlugin extends CordovaPlugin {
 
     // Disable auto starting sessions
     if (cordovaPreferences.getBoolean(DISABLE_AUTO_START_SESSIONS_PREFERENCE, false)) {
-      AppboyLogger.d(TAG, "Disabling session auto starts");
+      BrazeLogger.d(TAG, "Disabling session auto starts");
       mDisableAutoStartSessions = true;
     }
 
@@ -676,7 +693,7 @@ public class AppboyPlugin extends CordovaPlugin {
   private static String parseNumericPreferenceAsString(String preference) {
     if (preference != null && preference.startsWith(NUMERIC_PREFERENCE_PREFIX)) {
       String preferenceValue = preference.substring(NUMERIC_PREFERENCE_PREFIX.length(), preference.length());
-      AppboyLogger.d(TAG, "Parsed numeric preference " + preference + " into value: " + preferenceValue);
+      BrazeLogger.d(TAG, "Parsed numeric preference " + preference + " into value: " + preferenceValue);
       return preferenceValue;
     }
     return preference;
@@ -692,7 +709,7 @@ public class AppboyPlugin extends CordovaPlugin {
 
     if (preference != null && preference.startsWith(NUMERIC_PREFERENCE_PREFIX)) {
       preferenceValue = preference.substring(NUMERIC_PREFERENCE_PREFIX.length(), preference.length());
-      AppboyLogger.d(TAG, "Parsed numeric preference " + preference + " into value: " + preferenceValue);
+      BrazeLogger.d(TAG, "Parsed numeric preference " + preference + " into value: " + preferenceValue);
     }
 
     // Parse the string as an integer. Note that this is the same decoding used in CordovaPreferences
