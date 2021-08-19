@@ -25,11 +25,8 @@
       <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     </config-file>
     <config-file target="AndroidManifest.xml" parent="/manifest/application">
-      <service android:name="com.braze.push.BrazeFirebaseMessagingService">
-        <intent-filter>
-          <action android:name="com.google.firebase.MESSAGING_EVENT" />
-        </intent-filter>
-      </service>
+      <activity android:name="com.appboy.ui.activities.AppboyFeedActivity" />
+      <activity android:name="com.appboy.ui.AppboyWebViewActivity"/>
     </config-file>
   </platform>
 
