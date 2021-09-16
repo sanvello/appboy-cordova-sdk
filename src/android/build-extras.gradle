@@ -1,6 +1,6 @@
 repositories {
     google()
-    jcenter()
+    mavenCentral()
     maven { url 'https://appboy.github.io/appboy-android-sdk/sdk' }
 }
 
@@ -14,7 +14,7 @@ dependencies {
 buildscript {
     repositories {
       google()
-      jcenter()
+      mavenCentral()
     }
 
     dependencies {
