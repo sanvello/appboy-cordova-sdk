@@ -1,23 +1,22 @@
 repositories {
     google()
-    jcenter()
-    maven { url 'http://appboy.github.io/appboy-android-sdk/sdk' }
+    mavenCentral()
+    maven { url 'https://appboy.github.io/appboy-android-sdk/sdk' }
 }
 
 dependencies {
-    compile 'com.appboy:android-sdk-ui:10.0.0'
-    compile 'com.google.firebase:firebase-messaging:22.0.0'
+    implementation 'com.appboy:android-sdk-ui:16.0.0'
+    implementation 'com.google.firebase:firebase-messaging:22.0.0'
 }
 
 buildscript {
     repositories {
-      google()
-      jcenter()
+        google()
+        mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.0.0'
-        classpath 'com.google.gms:google-services:4.2.0'
+        classpath 'com.google.gms:google-services:4.3.4'
     }
 }
 
