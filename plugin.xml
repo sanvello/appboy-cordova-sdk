@@ -11,6 +11,10 @@
 
   <!-- android -->
   <platform name="android">
+    <preference name="com.appboy.android_handle_push_deep_links_automatically" value="true" />
+    <preference name="com.appboy.android_log_level" value=LOG_LEVEL_INTEGER />
+    <preference name="com.appboy.firebase_cloud_messaging_registration_enabled" value="true" />
+    <preference name="com.appboy.android_disable_auto_session_tracking" value="false" />
     <config-file target="res/xml/config.xml" parent="/*">
       <feature name="AppboyPlugin">
         <param name="android-package" value="com.appboy.cordova.AppboyPlugin" />
