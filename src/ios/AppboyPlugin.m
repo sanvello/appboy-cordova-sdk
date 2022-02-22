@@ -1,5 +1,4 @@
 #import "AppboyPlugin.h"
-
 #if __has_include(<Appboy_iOS_SDK/AppboyKit.h>)
 #import <Appboy_iOS_SDK/AppboyKit.h>
 #import <Appboy_iOS_SDK/ABKAttributionData.h>
@@ -85,6 +84,7 @@
             inApplication:self.application
         withLaunchOptions:self.launchOptions
         withAppboyOptions:appboyLaunchOptions];
+  [[Appboy sharedInstance] addSdkMetadata:@[ABKSdkMetadataCordova]];
 
   if (![self.disableAutomaticPushRegistration isEqualToString:@"YES"]) {
     UIUserNotificationType notificationSettingTypes = (UIUserNotificationTypeBadge | UIUserNotificationTypeAlert | UIUserNotificationTypeSound);
@@ -342,6 +342,20 @@
   NSString *language = [command argumentAtIndex:0 withDefault:nil];
   if (language != nil) {
     [Appboy sharedInstance].user.language = language;
+  }
+}
+
+- (void) addToSubscriptionGroup:(CDVInvokedUrlCommand *)command {
+  NSString *groupId = [command argumentAtIndex:0 withDefault:nil];
+  if (groupId != nil) {
+    [[Appboy sharedInstance].user addToSubscriptionGroupWithGroupId:groupId];
+  }
+}
+
+- (void) removeFromSubscriptionGroup:(CDVInvokedUrlCommand *)command {
+  NSString *groupId = [command argumentAtIndex:0 withDefault:nil];
+  if (groupId != nil) {
+    [[Appboy sharedInstance].user removeFromSubscriptionGroupWithGroupId:groupId];
   }
 }
 
