@@ -85,6 +85,8 @@ public class AppboyPlugin extends CordovaPlugin {
   private Context mApplicationContext;
   private final Map<String, IEventSubscriber<FeedUpdatedEvent>> mFeedSubscriberMap = new ConcurrentHashMap<>();
 
+  private boolean mShouldForceSessionReset = true;
+
   @Override
   protected void pluginInitialize() {
     mApplicationContext = this.cordova.getActivity().getApplicationContext();
