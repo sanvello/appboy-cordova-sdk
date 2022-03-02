@@ -84,7 +84,6 @@
             inApplication:self.application
         withLaunchOptions:self.launchOptions
         withAppboyOptions:appboyLaunchOptions];
-  [[Appboy sharedInstance] addSdkMetadata:@[ABKSdkMetadataCordova]];
 
   if (![self.disableAutomaticPushRegistration isEqualToString:@"YES"]) {
     UIUserNotificationType notificationSettingTypes = (UIUserNotificationTypeBadge | UIUserNotificationTypeAlert | UIUserNotificationTypeSound);
