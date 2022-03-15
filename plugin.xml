@@ -27,12 +27,8 @@
     </config-file>
     <config-file target="AndroidManifest.xml" parent="/manifest/application">
       <activity android:name="com.appboy.ui.activities.AppboyFeedActivity" />
-      <activity android:name="com.braze.ui.BrazeWebViewActivity"/>
-      <service android:name="com.braze.push.BrazeFirebaseMessagingService">
-        <intent-filter>
-          <action android:name="com.google.firebase.MESSAGING_EVENT" />
-        </intent-filter>
-      </service>
+      <activity android:name="com.braze.ui.BrazeWebViewActivity" />
+      <service android:name="com.braze.push.BrazeFirebaseMessagingService" />
     </config-file>
   </platform>
 
